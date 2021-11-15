@@ -15,6 +15,7 @@ let monthlyLabels = [];
 const newAmount = document.getElementById("itemAmount");
 const newMonth = document.getElementById("monthId");
 const newProduct = document.forms[0].inlineRadioOptions;
+const mes=document.getElementById("removeSales");
 //Variables
 let deptSales = Array.of(0, 0, 0, 0);
 let deptLabels = Array.of("Cámara", "Móvil", "Portátil", "Tablet");
@@ -28,6 +29,31 @@ function cleanAddSaleForm() {
 	newMonth.value = "";
 	newProduct.value = "";
 	newAmount.value = "";
+
+}
+function completeMap(map,product,amount) {
+if (product=="option1") {
+	map.set(product,Number.parseInt(amount));
+	map.set("option2", 0);
+	map.set("option3", 0);
+	map.set("option4", 0);
+}else if (product=="option2") {
+
+	map.set("option1", 0);
+	map.set(product,Number.parseInt(amount));
+	map.set("option3", 0);
+	map.set("option4", 0);
+}else if (product=="option3") {
+
+	map.set("option1", 0);
+	map.set("option2", 0);
+	map.set(product,Number.parseInt(amount));
+	map.set("option4", 0);
+}else
+map.set("option2", 0);
+map.set("option3", 0);
+map.set("option4", 0);
+map.set(product,Number.parseInt(amount));
 
 }
 
@@ -50,7 +76,8 @@ function addSale() {
 		}else{
 			monthlySalesMap.set(newMonth.value, new Map())
 			let add =monthlySalesMap.get(newMonth.value);
-			add.set(newProduct.value, Number.parseInt(newAmount.value));
+			//add.set(newProduct.value, Number.parseInt(newAmount.value));
+			completeMap(add, newProduct.value, newAmount.value);
 
 		}
 		switch (newProduct.value) {
@@ -108,7 +135,6 @@ function initMonthlyTotalSales() {
 		})
 	})
 	yearlyLabel.innerHTML = total+"€";
-	console.log(monthlySalesMap.get(newMonth.value));
 
 }
 
@@ -141,44 +167,50 @@ function getSalesMonths() {
 	});
 }
 
+function drawProduct() {
+	let removeProd = $("#removeProduct");
+	let map1=monthlySalesMap.get(mes.value);
+	console.log('el mes es: '+mes.value);
+	console.log(map1);
+	for (let [product, amount] of map1.entries()) {
+		// Creamos elemento option con jQuery
+		let opt = $("<option>").val(product).text(amount);
+		// Añadimos elemento al select.
+		removeProduct.append(opt);
+	}
+}
+
 // Crear select con
 function drawSelectMontlySales() {
 	// Seleccionamos elemento usando id con jQuery
 	let removeSales = $("#removeSales");
 	// Eliminamos option del select.
+	removeProd.empty();
 	removeSales.empty();
 	for (let [month, amount] of monthlySalesMap.entries()) {
 		// Creamos elemento option con jQuery
 		let opt = $("<option>").val(month).text(month);
 		// Añadimos elemento al select.
 		removeSales.append(opt);
-	}
 
-	function drawProduct() {
-		let removeProduct = $("#removeProduct");
-		let map1=monthlySalesMap.get(month);
-		for (let [product, amount] of map1.entries()) {
-			// Creamos elemento option con jQuery
-			let opt = $("<option>").val(product).text(amount);
-			// Añadimos elemento al select.
-			removeProduct.append(opt);
-		}
 	}
-
-drawProduct();
-opt.addEventListener(onchange,drawProduct);
+	drawProduct();
 }
+
+
+
 
 // Borrar meses de la colección
 function removeMonthlySale() {
 	let removeSales = document.getElementById("removeSales");
 	// Borramos de la colección la venta.
-	monthlySalesMap.delete(removeSales.value);
+	//monthlySalesMap.delete(removeSales.value);
 	// Actualizamos colección en el gráfico
 	updateDataset();
 	// Actualizasmos la vista
 	initMonthlyTotalSales();
 	drawSelectMontlySales();
+	drawProduct();
 }
 
 
@@ -189,9 +221,7 @@ function initMonths() {
 	monthlySalesMap.forEach(function (value, key) {
 		data.push(key);
 	});
-	data.sort(function (elem1, elem2) {
-		return elem1.localeCompare(elem2);
-	});
+
 	monthlyLabels=data;
 }
 
