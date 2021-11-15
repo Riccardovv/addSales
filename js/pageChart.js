@@ -16,6 +16,8 @@ const newAmount = document.getElementById("itemAmount");
 const newMonth = document.getElementById("monthId");
 const newProduct = document.forms[0].inlineRadioOptions;
 const mes=document.getElementById("removeSales");
+//valores de borrar
+//mes.addEventListener(onChange,drawProduct)
 //Variables
 let deptSales = Array.of(0, 0, 0, 0);
 let deptLabels = Array.of("Cámara", "Móvil", "Portátil", "Tablet");
@@ -24,35 +26,37 @@ let deptLabels = Array.of("Cámara", "Móvil", "Portátil", "Tablet");
 let monthlySalesMap = new Map();
 
 
-//Añadir ventas al gráfico
+//Añadir ventas al gráfico, resetea los valores al añadir
 function cleanAddSaleForm() {
 	newMonth.value = "";
 	newProduct.value = "";
 	newAmount.value = "";
 
 }
+//rellena con 0 los valores del mapa no introducidos en un mes,
+// para evitar fallos a la hora de añadir valores en meses posteriores
 function completeMap(map,product,amount) {
-if (product=="option1") {
+if (product=="camara") {
 	map.set(product,Number.parseInt(amount));
-	map.set("option2", 0);
-	map.set("option3", 0);
-	map.set("option4", 0);
-}else if (product=="option2") {
+	map.set("movil", 0);
+	map.set("portatil", 0);
+	map.set("tablet", 0);
+}else if (product=="movil") {
 
-	map.set("option1", 0);
+	map.set("camara", 0);
 	map.set(product,Number.parseInt(amount));
-	map.set("option3", 0);
-	map.set("option4", 0);
-}else if (product=="option3") {
+	map.set("portatil", 0);
+	map.set("tablet", 0);
+}else if (product=="portatil") {
 
-	map.set("option1", 0);
-	map.set("option2", 0);
+	map.set("camara", 0);
+	map.set("movil", 0);
 	map.set(product,Number.parseInt(amount));
-	map.set("option4", 0);
+	map.set("tablet", 0);
 }else
-map.set("option2", 0);
-map.set("option3", 0);
-map.set("option4", 0);
+map.set("camara", 0);
+map.set("movil", 0);
+map.set("portatil", 0);
 map.set(product,Number.parseInt(amount));
 
 }
@@ -60,37 +64,32 @@ map.set(product,Number.parseInt(amount));
 function addSale() {
 	try {
 
+		//comprueba si existe registro para el mes
 		if (monthlySalesMap.has(newMonth.value)) {
-
 			let map1=monthlySalesMap.get(newMonth.value);
-
-			if (map1.has(newProduct.value)) {
-
+				//si el mes tiene el valor, se suma el nuevo dato
 				let total=Number.parseInt(map1.get(newProduct.value))+Number.parseInt(newAmount.value);
 				map1.delete(newProduct.value);
 				map1.set(newProduct.value, Number.parseInt(total));
 
-			}else{
-				map1.set(newProduct.value, Number.parseInt(newAmount.value));
-			}
 		}else{
+			//si no existe registro para el mes, se crea
 			monthlySalesMap.set(newMonth.value, new Map())
 			let add =monthlySalesMap.get(newMonth.value);
-			//add.set(newProduct.value, Number.parseInt(newAmount.value));
 			completeMap(add, newProduct.value, newAmount.value);
 
 		}
 		switch (newProduct.value) {
-			case "option1":
+			case "camara":
 				deptSales[0]++;
 				break;
-			case "option2":
+			case "movil":
 				deptSales[1]++;
 				break;
-			case "option3":
+			case "portatil":
 				deptSales[2]++;
 				break;
-			case "option4":
+			case "tablet":
 				deptSales[3]++;
 				break;
 		}
@@ -109,22 +108,24 @@ function addSale() {
 		cleanAddSaleForm();
 	}
 }
+//funcion que actualiza el grafico con los nuevos valores introducidos
 function updateDataset() {
 	initMonths();
-		initCamera();
-		initPhone();
-		initLaptop();
-		initTablet();
-		console.log(monthlySalesMap);
-		 monthlySalesChart.data.datasets[0].data = monthlySalesCamera;
-		 monthlySalesChart.data.datasets[1].data = monthlySalesPhone;
-		 monthlySalesChart.data.datasets[2].data = monthlySalesLaptop;
-		 monthlySalesChart.data.datasets[3].data = monthlySalesTablet;
-		console.log(monthlyLabels);
-		 monthlySalesChart.data.labels = monthlyLabels;
-		 monthlySalesChart.update();
-		 deptSalesChart.clear();
-		deptSalesChart.update();
+	initCamera();
+	initPhone();
+	initLaptop();
+	initTablet();
+
+	monthlySalesChart.data.datasets[0].data = monthlySalesCamera;
+	monthlySalesChart.data.datasets[1].data = monthlySalesPhone;
+	monthlySalesChart.data.datasets[2].data = monthlySalesLaptop;
+	monthlySalesChart.data.datasets[3].data = monthlySalesTablet;
+	monthlySalesChart.data.labels = monthlyLabels;
+	monthlySalesChart.update();
+
+	deptSalesChart.clear();
+	deptSalesChart.update();
+
 }
 //Iteración para calcular el total de ventas
 function initMonthlyTotalSales() {
@@ -167,50 +168,54 @@ function getSalesMonths() {
 	});
 }
 
+//crea el segundo select con los valores de venta de los producto para el mes seleccionado
 function drawProduct() {
 	let removeProd = $("#removeProduct");
-	let map1=monthlySalesMap.get(mes.value);
-	console.log('el mes es: '+mes.value);
-	console.log(map1);
-	for (let [product, amount] of map1.entries()) {
+	removeProd.empty();
+	let opt=document.getElementById("removeSales").value;
+	let map=monthlySalesMap.get(opt);
+	for (let [elem, value] of map.entries()) {
 		// Creamos elemento option con jQuery
-		let opt = $("<option>").val(product).text(amount);
+		let opti = $("<option>").val(elem).text(elem+" "+value+"€");
 		// Añadimos elemento al select.
-		removeProduct.append(opt);
+		removeProd.append(opti);
 	}
+
 }
 
-// Crear select con
+
+// Crear select con los valores de los meses que existen
 function drawSelectMontlySales() {
 	// Seleccionamos elemento usando id con jQuery
 	let removeSales = $("#removeSales");
 	// Eliminamos option del select.
-	removeProd.empty();
 	removeSales.empty();
-	for (let [month, amount] of monthlySalesMap.entries()) {
+	let opt="";
+	for (let [month] of monthlySalesMap.entries()) {
 		// Creamos elemento option con jQuery
-		let opt = $("<option>").val(month).text(month);
+		opt = $("<option>").val(month).text(month);
 		// Añadimos elemento al select.
 		removeSales.append(opt);
-
 	}
+
 	drawProduct();
+
 }
 
 
 
 
-// Borrar meses de la colección
+// Borrar meses de la colección, se llama al pulsar el boton de borrar datos
 function removeMonthlySale() {
 	let removeSales = document.getElementById("removeSales");
-	// Borramos de la colección la venta.
-	//monthlySalesMap.delete(removeSales.value);
-	// Actualizamos colección en el gráfico
+	let removeProduct = document.getElementById("removeProduct");
+	let map = monthlySalesMap.get(removeSales.value);
+	map.delete(removeProduct.value);
+	map.set(removeProduct.value,0);
 	updateDataset();
-	// Actualizasmos la vista
 	initMonthlyTotalSales();
 	drawSelectMontlySales();
-	drawProduct();
+
 }
 
 
@@ -230,40 +235,43 @@ function initCamera() {
 	let data=new Array();
 	monthlySalesMap.forEach(function (value, key) {
 		value.forEach(function (value,key) {
-			if (key=="option1") {
+			if (key=="camara") {
 				data.push(value);
 			}
 		})
 	})
 	monthlySalesCamera=data;
 }
+//crea el array con los valore de venta de moviles para mostrarlo en el grafico
 function initPhone() {
 	let data=new Array();
 	monthlySalesMap.forEach(function (value, key) {
 		value.forEach(function (value,key) {
-			if (key=="option2") {
+			if (key=="movil") {
 				data.push(value);
 			}
 		})
 	})
 	monthlySalesPhone=data;
 }
+//crea el array con los valore de venta de portatiles para mostrarlo en el grafico
 function initLaptop() {
 	let data=new Array();
 	monthlySalesMap.forEach(function (value, key) {
 		value.forEach(function (value,key) {
-			if (key=="option3") {
+			if (key=="portatil") {
 				data.push(value);
 			}
 		})
 	})
 	monthlySalesLaptop=data;
 }
+//crea el array con los valore de venta de tablets para mostrarlo en el grafico
 function initTablet() {
 	let data=new Array();
 	monthlySalesMap.forEach(function (value, key) {
 		value.forEach(function (value,key) {
-			if (key=="option4") {
+			if (key=="tablet") {
 				data.push(value);
 			}
 		})
@@ -272,7 +280,7 @@ function initTablet() {
 }
 
 
-
+//grafico de barras
 let monthlySalesChart = new Chart(monthCtx, {
     type: 'bar',
     data: {
