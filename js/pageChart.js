@@ -58,12 +58,22 @@ map.set("camara", 0);
 map.set("movil", 0);
 map.set("portatil", 0);
 map.set(product,Number.parseInt(amount));
+}
 
+function validateInput(value) {
+
+	if (isNaN(value)) {
+		throw {
+			title: 'Error de validacion',
+			message: 'el valor introducido no es un numero'
+		}
+	}
 }
 
 function addSale() {
-	try {
 
+	try {
+		validateInput(newAmount.value);
 		//comprueba si existe registro para el mes
 		if (monthlySalesMap.has(newMonth.value)) {
 			let map1=monthlySalesMap.get(newMonth.value);
@@ -76,7 +86,7 @@ function addSale() {
 			//si no existe registro para el mes, se crea
 			monthlySalesMap.set(newMonth.value, new Map())
 			let add =monthlySalesMap.get(newMonth.value);
-			completeMap(add, newProduct.value, newAmount.value);
+			completeMap(add, newProduct.value, Number.parseInt(newAmount.value));
 
 		}
 		switch (newProduct.value) {
@@ -93,8 +103,6 @@ function addSale() {
 				deptSales[3]++;
 				break;
 		}
-
-
 		//Recuento de totales
 		initMonthlyTotalSales();
 
@@ -115,6 +123,7 @@ function updateDataset() {
 	initPhone();
 	initLaptop();
 	initTablet();
+	initMonthlyTotalSales();
 
 	monthlySalesChart.data.datasets[0].data = monthlySalesCamera;
 	monthlySalesChart.data.datasets[1].data = monthlySalesPhone;
@@ -170,7 +179,8 @@ function getSalesMonths() {
 
 //crea el segundo select con los valores de venta de los producto para el mes seleccionado
 function drawProduct() {
-	let removeProd = $("#removeProduct");
+	try {
+		let removeProd = $("#removeProduct");
 	removeProd.empty();
 	let opt=document.getElementById("removeSales").value;
 	let map=monthlySalesMap.get(opt);
@@ -179,6 +189,9 @@ function drawProduct() {
 		let opti = $("<option>").val(elem).text(elem+" "+value+"€");
 		// Añadimos elemento al select.
 		removeProd.append(opti);
+	}
+	} catch (error) {
+
 	}
 
 }
@@ -212,6 +225,15 @@ function removeMonthlySale() {
 	let map = monthlySalesMap.get(removeSales.value);
 	map.delete(removeProduct.value);
 	map.set(removeProduct.value,0);
+	console.log(map);
+	let borrar= true;
+	borrar=map.get("camara")==0 && map.get("movil")==0 && map.get("portatil")==0 && map.get("tablet")==0;
+	console.log(map);
+	console.log('borrar vale '+borrar);
+	if (borrar) {
+		monthlySalesMap.delete(removeSales.value);
+		console.log('entra el if');
+	}
 	updateDataset();
 	initMonthlyTotalSales();
 	drawSelectMontlySales();
